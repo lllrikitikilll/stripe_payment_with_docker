@@ -2,10 +2,11 @@ import stripe
 from django.http import HttpRequest, JsonResponse
 from django.views import View
 from django.views.generic import TemplateView
-
-from payment_app.models import Item, Discount, Order
+from payment_app.models import Item, Order
 from payment_stripe.settings import STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY, YOUR_DOMAIN
 from payment_app.stripe_utils import get_item
+
+stripe.api_key = STRIPE_SECRET_KEY
 
 
 class CreateCheckoutSessionItemView(View):

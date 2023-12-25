@@ -1,6 +1,10 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from stripe import Coupon, TaxRate
+import stripe
+from payment_stripe.settings import STRIPE_SECRET_KEY
+
+
+stripe.api_key = STRIPE_SECRET_KEY
 
 
 class Item(models.Model):
@@ -46,7 +50,7 @@ class Tax(models.Model):
     percentage = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(100)])
 
     def save(self, *args, **kwargs):
-        tax_rate = TaxRate.create(
+        tax_rate = stripe.TaxRate.create(
             inclusive=self.inclusive,
             display_name=self.display_name,
             active=self.active,
@@ -90,7 +94,7 @@ class Discount(models.Model):
             return super().save(self)
 
         # Если есть скидка - сохраняем информацию о купоне
-        coupon = Coupon.create(
+        coupon = stripe.Coupon.create(
             amount_off=self.amount_off,
             duration=self.duration,
             duration_in_months=self.duration_in_months,

@@ -9,10 +9,9 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-from os import getenv
 from pathlib import Path
+from os import getenv
 from dotenv import load_dotenv
-
 
 load_dotenv()
 
@@ -127,9 +126,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-
 YOUR_DOMAIN = 'http://127.0.0.1:8000/'
+
 # stripe keys
 STRIPE_PUBLIC_KEY = getenv('STRIPE_PUBLIC_KEY')
 STRIPE_SECRET_KEY = getenv('STRIPE_SECRET_KEY')

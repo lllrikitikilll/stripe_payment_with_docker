@@ -40,5 +40,5 @@ class DiscountAdmin(admin.ModelAdmin):
 
 @admin.register(Tax)
 class TaxAdmin(admin.ModelAdmin):
-    list_display = ('id', 'display_name', 'percentage')
+    list_display = ('tax_id', 'display_name', 'percentage')
     readonly_fields = ('tax_id',)
