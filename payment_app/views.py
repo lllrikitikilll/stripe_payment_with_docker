@@ -40,7 +40,7 @@ class CreateCheckoutSessionOrderView(View):
         }
         # Если если купон, добавить его к параментрам
         if order.discount.percent_off:
-            data_for_checkout_session['discounts'] = [{'coupon': order.discount.id}]
+            data_for_checkout_session['discounts'] = [{'coupon': order.discount.coupon_id}]
         checkout_session = stripe.checkout.Session.create(**data_for_checkout_session)
         return JsonResponse({'id': checkout_session.id})
 

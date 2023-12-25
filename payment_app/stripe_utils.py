@@ -17,7 +17,7 @@ def get_item(items: Iterable[Any]) -> list:
         }
         # # Если есть налог, добавляем его
         if item.tax.percentage:
-            data_price['tax_rates'] = [item.tax.id]
+            data_price['tax_rates'] = [item.tax.tax_id]
         list_price_id.append(data_price)
 
     return list_price_id
