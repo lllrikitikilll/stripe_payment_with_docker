@@ -35,7 +35,7 @@ class OrderAdmin(admin.ModelAdmin):
 class DiscountAdmin(admin.ModelAdmin):
     list_display = ('name', 'percent_off', 'valid')
     list_display_links = ['name']
-    readonly_fields = ('id', 'created')
+    readonly_fields = ('coupon_id', 'created')
 
 
 @admin.register(Tax)
