@@ -14,7 +14,7 @@ class Item(models.Model):
     description = models.TextField(null=True, blank=True)
     price = models.IntegerField(validators=[MinValueValidator(0)])
     currency = models.CharField(max_length=3, choices=Currency.choices, default=Currency.USD)
-    tax = models.ForeignKey('Tax', on_delete=models.SET_NULL, default=None, null=True)
+    tax = models.ForeignKey('Tax', on_delete=models.SET_NULL, default=1, null=True)
 
     def get_price(self):
         return int(self.price) / 100
@@ -26,7 +26,7 @@ class Item(models.Model):
 class Order(models.Model):
     """Модель корзины"""
     items = models.ManyToManyField(Item)
-    discount = models.ForeignKey('Discount', on_delete=models.SET_NULL, null=True)
+    discount = models.ForeignKey('Discount', on_delete=models.SET_DEFAULT, default=1)
 
     def get_items(self):
         return self.items.all()
@@ -38,7 +38,7 @@ class Order(models.Model):
 class Tax(models.Model):
     """Модель налоговой ставки"""
 
-    id = models.CharField(max_length=20, primary_key=True)
+    tax_id = models.CharField(max_length=20, primary_key=True)
     inclusive = models.BooleanField(default=False)
     display_name = models.CharField(max_length=255)
     active = models.BooleanField(default=True)
@@ -54,7 +54,7 @@ class Tax(models.Model):
             percentage=self.percentage,
         )
 
-        self.id = tax_rate.id
+        self.tax_id = tax_rate.id
         self.inclusive = tax_rate.inclusive
         self.display_name = tax_rate.display_name
         self.active = tax_rate.active
@@ -70,7 +70,7 @@ class Tax(models.Model):
 class Discount(models.Model):
     """Модель скидочного купона. Идет обращение к внешнему сервису Stirpe"""
 
-    id = models.CharField(max_length=20, primary_key=True)
+    coupon_id = models.CharField(max_length=20)
     amount_off = models.IntegerField(null=True, validators=[MinValueValidator(0)], blank=True)
     created = models.CharField(max_length=20)
     duration = models.CharField(max_length=25, default="repeating")
@@ -82,7 +82,7 @@ class Discount(models.Model):
 
     def save(self, *args, **kwargs):
         if not int(self.percent_off):
-            self.id = 0
+            self.coupon_id = 0
             self.created = 0
             self.amount_off = None
             self.duration_in_months = 3600
@@ -99,7 +99,7 @@ class Discount(models.Model):
             percent_off=self.percent_off,
 
         )
-        self.id = coupon.id
+        self.coupon_id = coupon.id
         self.created = coupon.created
         self.valid = coupon.valid
         self.amount_off = coupon.amount_off

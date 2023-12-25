@@ -1,3 +1,76 @@
-from django.shortcuts import render
+import stripe
+from django.http import HttpRequest, JsonResponse
+from django.views import View
+from django.views.generic import TemplateView
 
-# Create your views here.
+from payment_app.models import Item, Discount, Order
+from payment_stripe.settings import STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY, YOUR_DOMAIN
+from payment_app.stripe_utils import get_item
+
+
+class CreateCheckoutSessionItemView(View):
+    """Получение сессии на покупку одного Item"""
+    DOMAIN = YOUR_DOMAIN
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> JsonResponse:
+        item = Item.objects.get(pk=self.kwargs['pk'])
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=get_item([item]),
+            mode='payment',
+            success_url=self.DOMAIN + '/success',
+            cancel_url=self.DOMAIN + '/cancel',
+        )
+        return JsonResponse({'id': checkout_session.id})
+
+
+class CreateCheckoutSessionOrderView(View):
+    """Получение сессии на покупку одного группы Item по url /buy_order/<int:pk>/"""
+    DOMAIN = YOUR_DOMAIN
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> JsonResponse:
+        order = Order.objects.get(pk=self.kwargs['pk'])
+        data_for_checkout_session = {
+            'payment_method_types': ['card'],
+            'line_items': get_item(order.items.all()),
+            'mode': 'payment',
+            'success_url': self.DOMAIN + '/success',
+            'cancel_url': self.DOMAIN + '/cancel',
+        }
+        # Если если купон, добавить его к параментрам
+        if order.discount.percent_off:
+            data_for_checkout_session['discounts'] = [{'coupon': order.discount.id}]
+        checkout_session = stripe.checkout.Session.create(**data_for_checkout_session)
+        return JsonResponse({'id': checkout_session.id})
+
+
+class OrderTemplateView(TemplateView):
+    """Возвращает страницу с Item"""
+    template_name = 'payment_app/order.html'
+
+    def get_context_data(self, **kwargs) -> dict:
+        context = super().get_context_data(**kwargs)
+        context['order'] = Order.objects.get(pk=self.kwargs['pk'])
+        context['public_key'] = STRIPE_PUBLIC_KEY
+        return context
+
+
+class ItemTemplateView(TemplateView):
+    """Возвращает страницу с Order (группа item)"""
+    template_name = 'payment_app/item.html'
+
+    def get_context_data(self, **kwargs) -> dict:
+        context = super().get_context_data(**kwargs)
+        context['item'] = Item.objects.get(pk=self.kwargs['pk'])
+        context['public_key'] = STRIPE_PUBLIC_KEY
+        return context
+
+
+class SuccessTemplateView(TemplateView):
+    """Возвращает страницу удачной оплаты"""
+    template_name = 'payment_app/success.html'
+
+
+class CancelTemplateView(SuccessTemplateView):
+    """Возвращает страницу с ошибкой оплаты"""
+    template_name = 'payment_app/cancel.html'
