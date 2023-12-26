@@ -19,7 +19,7 @@ class OrderAdmin(admin.ModelAdmin):
 
     @staticmethod
     def order_sum(obj):
-        return obj.items.aggregate(res=Sum("price"))['res']
+        return obj.items.aggregate(res=Sum("price"))['res'] / 100
 
     @staticmethod
     def percent_off(obj):
@@ -28,7 +28,7 @@ class OrderAdmin(admin.ModelAdmin):
     @staticmethod
     def order_sum_with_discount(obj):
         sum = OrderAdmin.order_sum(obj)
-        return sum - sum * (obj.discount.percent_off / 100)
+        return (sum - sum * (obj.discount.percent_off / 100)) / 100
 
 
 @admin.register(Discount)
