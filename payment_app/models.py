@@ -86,6 +86,7 @@ class Discount(models.Model):
 
     def save(self, *args, **kwargs):
         if not int(self.percent_off):
+            self.id = 0
             self.coupon_id = 0
             self.created = 0
             self.amount_off = None

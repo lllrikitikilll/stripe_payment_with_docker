@@ -1,3 +1,5 @@
+import decimal
+
 from django.contrib import admin
 from django.db.models import Sum
 from payment_app.models import Item, Order, Discount, Tax
@@ -27,8 +29,8 @@ class OrderAdmin(admin.ModelAdmin):
 
     @staticmethod
     def order_sum_with_discount(obj):
-        sum = OrderAdmin.order_sum(obj)
-        return (sum - sum * (obj.discount.percent_off / 100)) / 100
+        sum = decimal.Decimal(OrderAdmin.order_sum(obj))
+        return sum - sum * (obj.discount.percent_off / 100)
 
 
 @admin.register(Discount)

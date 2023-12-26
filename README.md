@@ -58,13 +58,13 @@ username: root
 password: root
 ```
 ## Пример оплаты Order
-![img_2.png](img_2.png)
+![img_1.png](img/1.png)
 
 `http://127.0.0.1:8000/order/1/`
 
-![img_3.png](img_3.png)
+![img.png](img/2.png)
 
-![img.png](img.png)
+![img_2.png](img/3.png)
 
 
 
