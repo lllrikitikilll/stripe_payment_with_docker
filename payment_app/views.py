@@ -2,7 +2,7 @@ import stripe
 from django.http import HttpRequest, JsonResponse
 from django.views import View
 from django.views.generic import TemplateView
-from payment_app.models import Item, Order
+from payment_app.models import Item, Order, Discount
 from payment_stripe.settings import STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY, YOUR_DOMAIN
 from payment_app.stripe_utils import get_item
 
@@ -38,9 +38,12 @@ class CreateCheckoutSessionOrderView(View):
             'success_url': self.DOMAIN + '/success',
             'cancel_url': self.DOMAIN + '/cancel',
         }
-        # Если если купон, добавить его к параментрам
-        if order.discount.percent_off:
+        # Если есть купон > 0%, добавить его к параментрам
+        if order.discount.percent_off and stripe.Coupon.retrieve(order.discount.coupon_id).valid:
             data_for_checkout_session['discounts'] = [{'coupon': order.discount.coupon_id}]
+        else:
+            # Иначе сделать недействительным
+            Discount.objects.filter(pk=order.discount.id).update(valid=False)
         checkout_session = stripe.checkout.Session.create(**data_for_checkout_session)
         return JsonResponse({'id': checkout_session.id})
 

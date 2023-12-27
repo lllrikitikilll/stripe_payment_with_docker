@@ -74,11 +74,16 @@ class Tax(models.Model):
 class Discount(models.Model):
     """Модель скидочного купона. Идет обращение к внешнему сервису Stirpe"""
 
+    class Duration(models.TextChoices):
+        FOREVER = 'forever'
+        ONCE = 'once'
+        REPEATING = 'repeating'
+
     coupon_id = models.CharField(max_length=20)
     amount_off = models.IntegerField(null=True, validators=[MinValueValidator(0)], blank=True)
     created = models.CharField(max_length=20)
-    duration = models.CharField(max_length=25, default="repeating")
-    duration_in_months = models.IntegerField(null=True, default=1)
+    duration = models.CharField(max_length=10, default=Duration.FOREVER, choices=Duration.choices)
+    duration_in_months = models.IntegerField(null=True, blank=True, default=None)
     max_redemptions = models.IntegerField(null=True, default=None, blank=True)
     name = models.CharField(max_length=255, null=True)
     percent_off = models.DecimalField(max_digits=5, decimal_places=1)
@@ -90,11 +95,15 @@ class Discount(models.Model):
             self.coupon_id = 0
             self.created = 0
             self.amount_off = None
-            self.duration_in_months = 3600
+            self.duration_in_months = None
             self.max_redemptions = None
             return super().save(self)
 
         # Если есть скидка - сохраняем информацию о купоне
+        if self.duration != 'repeating':
+            self.max_redemptions = None
+            self.duration_in_months = None
+
         coupon = stripe.Coupon.create(
             amount_off=self.amount_off,
             duration=self.duration,
@@ -104,17 +113,19 @@ class Discount(models.Model):
             percent_off=self.percent_off,
 
         )
+
         self.coupon_id = coupon.id
         self.created = coupon.created
         self.valid = coupon.valid
         self.amount_off = coupon.amount_off
         self.duration = coupon.duration
-        self.duration_in_months = coupon.duration_in_months
-        self.max_redemptions = coupon.max_redemptions
         self.name = coupon.name
         self.percent_off = coupon.percent_off
+        # Если не стоит агрумент "повторение"
+        self.max_redemptions = coupon.max_redemptions
+        self.duration_in_months = coupon.duration_in_months
 
         return super().save(self, args, kwargs)
 
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.name} | {self.percent_off}'
