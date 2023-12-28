@@ -25,12 +25,16 @@ class OrderAdmin(admin.ModelAdmin):
 
     @staticmethod
     def percent_off(obj):
-        return obj.discount.percent_off
+        if obj.discount:
+            return obj.discount.percent_off
+        return  None
 
     @staticmethod
     def order_sum_with_discount(obj):
-        sum = decimal.Decimal(OrderAdmin.order_sum(obj))
-        return sum - sum * (obj.discount.percent_off / 100)
+        if obj.discount:
+            sum = decimal.Decimal(OrderAdmin.order_sum(obj))
+            return sum - sum * (obj.discount.percent_off / 100)
+        return OrderAdmin.order_sum(obj)
 
 
 @admin.register(Discount)

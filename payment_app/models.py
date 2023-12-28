@@ -18,7 +18,7 @@ class Item(models.Model):
     description = models.TextField(null=True, blank=True)
     price = models.IntegerField(validators=[MinValueValidator(0)])
     currency = models.CharField(max_length=3, choices=Currency.choices, default=Currency.USD)
-    tax = models.ForeignKey('Tax', on_delete=models.SET_NULL, default=1, null=True)
+    tax = models.ForeignKey('Tax', on_delete=models.SET_NULL, default=None, null=True, blank=True)
 
     def get_price(self):
         return int(self.price) / 100
@@ -28,9 +28,9 @@ class Item(models.Model):
 
 
 class Order(models.Model):
-    """Модель корзины"""
+    """Модель Заказов"""
     items = models.ManyToManyField(Item)
-    discount = models.ForeignKey('Discount', on_delete=models.SET_DEFAULT, default=1)
+    discount = models.ForeignKey('Discount', on_delete=models.SET_DEFAULT, default=None,null=True, blank=True)
 
     def get_items(self):
         return self.items.all()
@@ -100,6 +100,7 @@ class Discount(models.Model):
             return super().save(self)
 
         # Если есть скидка - сохраняем информацию о купоне
+
         if self.duration != 'repeating':
             self.max_redemptions = None
             self.duration_in_months = None
@@ -121,7 +122,6 @@ class Discount(models.Model):
         self.duration = coupon.duration
         self.name = coupon.name
         self.percent_off = coupon.percent_off
-        # Если не стоит агрумент "повторение"
         self.max_redemptions = coupon.max_redemptions
         self.duration_in_months = coupon.duration_in_months
 

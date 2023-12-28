@@ -38,12 +38,13 @@ class CreateCheckoutSessionOrderView(View):
             'success_url': self.DOMAIN + '/success',
             'cancel_url': self.DOMAIN + '/cancel',
         }
-        # Если есть купон > 0%, добавить его к параментрам
-        if order.discount.percent_off and stripe.Coupon.retrieve(order.discount.coupon_id).valid:
+        # Если есть купон валидный добавить его к параметрам
+        if order.discount and stripe.Coupon.retrieve(order.discount.coupon_id).valid:
             data_for_checkout_session['discounts'] = [{'coupon': order.discount.coupon_id}]
-        else:
+        elif order.discount:
             # Иначе сделать недействительным
             Discount.objects.filter(pk=order.discount.id).update(valid=False)
+            Order.objects.filter(pk=order.id).update(discount=None)
         checkout_session = stripe.checkout.Session.create(**data_for_checkout_session)
         return JsonResponse({'id': checkout_session.id})
 
