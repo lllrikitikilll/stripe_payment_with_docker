@@ -19,10 +19,6 @@ class Item(models.Model):
     currency = models.CharField(max_length=3, choices=Currency.choices, default=Currency.USD)
     tax = models.ForeignKey('Tax', on_delete=models.SET_NULL, default=None, null=True, blank=True)
 
-    def save(self, *args, **kwargs):
-        # Перевод в целую денежную единицу
-        self.price = self.price / 100
-
     def get_price(self):
         return int(self.price)
 
@@ -68,7 +64,7 @@ class Tax(models.Model):
         self.country = tax_rate.country
         self.percentage = tax_rate.percentage
 
-        return super().save(self, args, kwargs)
+        return super().save(self, *args, **kwargs)
 
     def __str__(self):
         return f'{self.display_name} | {self.percentage}%'
@@ -117,7 +113,7 @@ class Discount(models.Model):
         self.max_redemptions = coupon.max_redemptions
         self.duration_in_months = coupon.duration_in_months
 
-        return super().save(self, args, kwargs)
+        return super().save(self, *args, **kwargs)
 
     def __str__(self):
         return f'{self.name} | {self.percent_off}'
