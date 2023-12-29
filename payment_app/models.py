@@ -19,8 +19,12 @@ class Item(models.Model):
     currency = models.CharField(max_length=3, choices=Currency.choices, default=Currency.USD)
     tax = models.ForeignKey('Tax', on_delete=models.SET_NULL, default=None, null=True, blank=True)
 
+    def save(self, *args, **kwargs):
+        # Перевод в целую денежную единицу
+        self.price = self.price / 100
+
     def get_price(self):
-        return int(self.price) / 100
+        return int(self.price)
 
     def __str__(self):
         return f'{self.name:.7} {self.price}'
