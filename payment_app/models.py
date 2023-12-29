@@ -3,7 +3,6 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 import stripe
 from payment_stripe.settings import STRIPE_SECRET_KEY
 
-
 stripe.api_key = STRIPE_SECRET_KEY
 
 
@@ -30,7 +29,7 @@ class Item(models.Model):
 class Order(models.Model):
     """Модель Заказов"""
     items = models.ManyToManyField(Item)
-    discount = models.ForeignKey('Discount', on_delete=models.SET_DEFAULT, default=None,null=True, blank=True)
+    discount = models.ForeignKey('Discount', on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
 
     def get_items(self):
         return self.items.all()
@@ -90,17 +89,7 @@ class Discount(models.Model):
     valid = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
-        if not int(self.percent_off):
-            self.id = 0
-            self.coupon_id = 0
-            self.created = 0
-            self.amount_off = None
-            self.duration_in_months = None
-            self.max_redemptions = None
-            return super().save(self)
-
-        # Если есть скидка - сохраняем информацию о купоне
-
+        # Если есть скидка без указания повторения
         if self.duration != 'repeating':
             self.max_redemptions = None
             self.duration_in_months = None
@@ -112,7 +101,6 @@ class Discount(models.Model):
             max_redemptions=self.max_redemptions,
             name=self.name,
             percent_off=self.percent_off,
-
         )
 
         self.coupon_id = coupon.id
